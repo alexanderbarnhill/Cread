@@ -1,0 +1,37 @@
+<mat-grid-list [cols]="12" [rowHeight]="800" [gutterSize]="32">
+  <mat-grid-tile colspan="2">
+    <mat-grid-tile-header>Users</mat-grid-tile-header>
+    <div class="user-list">
+      <mat-selection-list [multiple]="false">
+        <mat-list-option *ngFor="let user of users" (click)="openChat(user)">
+          {{user.name}}
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+  </mat-grid-tile>
+  <mat-grid-tile colspan="10" class="chat-container">
+    <div class="chat-overview">
+      <mat-grid-tile-header class="chat-header">
+        Chat
+        <div class="right-menu">
+          <button mat-raised-button
+                  mat-icon-button
+                  color="primary"
+                  class="add-tab-button"
+                  (click)="openChat(undefined)">
+            <mat-icon aria-hidden="false" aria-label="Example home icon">add</mat-icon>
+          </button>
+          <span class="current-user" *ngIf="currentUser">{{currentUser.name}}</span>
+        </div>
+
+      </mat-grid-tile-header>
+
+      <mat-tab-group mat-align-tabs="start" [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
+        <mat-tab *ngFor="let tab of chatTabs; let index = index" [label]="tab.name">
+          <app-chat-window *ngIf="currentUser" [messages]="tab.messages" [currentUser]="currentUser" [chatTab]="tab" (closeChatClicked)="closeTab(tab, index)"></app-chat-window>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+
+  </mat-grid-tile>
+</mat-grid-list>

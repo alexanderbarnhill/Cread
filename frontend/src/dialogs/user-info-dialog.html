@@ -1,0 +1,12 @@
+<h1 mat-dialog-title>Enter in your User Info</h1>
+<div mat-dialog-content>
+  <mat-form-field class="full-width">
+    <mat-label>Desired Username</mat-label>
+    <input matInput [(ngModel)]="data.name">
+  </mat-form-field>
+  <div class="message" *ngIf="data.message">{{data.message}}</div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button color="primary" [disabled]="data.name.length < 4" [mat-dialog-close]="data.name" cdkFocusInitial>Ok</button>
+</div>
+

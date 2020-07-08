@@ -1,0 +1,18 @@
+<mat-list id="chat-window">
+  <mat-list-item *ngFor="let message of messages">
+    <span class="message" [ngClass]="{'local': message.sender.name === currentUser.name}">
+      <span class="sender" *ngIf="chatTab.name.toLowerCase() === 'system' && message.sender.name !== currentUser.name">{{message.sender.name}} sent: </span> <br/>
+      <span class="content">{{message.content}}</span> <br />
+      <span class="time">{{message.timeSent}}</span>
+    </span>
+  </mat-list-item>
+</mat-list>
+<form class="message-form">
+  <mat-form-field class="message-area">
+    <mat-label>Write a message</mat-label>
+    <textarea matInput placeholder="Ex. Hello!" id="message-area" (keydown)="trigger($event)"></textarea>
+  </mat-form-field>
+  <div class="button-list">
+    <button mat-button color="warn" (click)="closeTab()">Close Chat</button>
+  </div>
+</form>

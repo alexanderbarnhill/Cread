@@ -1,0 +1,33 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px white;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #31528e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #31528e;
+}
+
+.chat-container {
+  .mat-figure {
+    align-items: flex-start !important;
+  }
+
+  .chat-overview {
+    margin-top: 60px;
+  }
+}
