@@ -22,7 +22,7 @@ namespace Cread
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", builder => builder
-                    .WithOrigins("http://cread.club", "http://localhost:4200")
+                    .WithOrigins("https://cread.club", "http://localhost:4200")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials());
@@ -45,6 +45,7 @@ namespace Cread
                 app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseCors("CorsPolicy");
