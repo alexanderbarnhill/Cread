@@ -45,6 +45,7 @@ namespace Cread
                 app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
 
             app.UseRouting();
             app.UseCors("CorsPolicy");
