@@ -67,7 +67,7 @@ export class ChatWindowComponent {
    */
   public closeTab() {
     this.closeChatClicked.emit();
-    this.signalRService.leaveGroup(this.chat);
+    // this.signalRService.leaveGroup(this.chat);
   }
 
   /**
