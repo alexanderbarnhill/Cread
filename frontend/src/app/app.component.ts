@@ -68,7 +68,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.systemUser = {
       name: 'SYSTEM',
       id: this.utils.uuid4(),
-      connectionId: ''
+      connectionId: '',
+      chats: new Map<string, Chat>()
     }
   }
 
@@ -112,6 +113,8 @@ export class AppComponent implements OnInit, OnDestroy {
    * @param user or undefined, depending on if the sender wants to input the username
    */
   public openChat(user: User | undefined) {
+    if (user.id === this.currentUser.id) return;
+    if (this.chatTabs.find( (chat: Chat) => chat.users.find( (u: User) => u.id === user.id))) return;
     const chatTab: Chat = {
       name: user && user.name || "(New Chat)",
       messages: new Array<Message>(),
@@ -144,9 +147,11 @@ export class AppComponent implements OnInit, OnDestroy {
         user = this.users.find( (u: User) => u.name == result);
         chatTab.users.push(user);
         this.signalRService.openGroup(chatTab);
+        this.currentUser.chats.set(chatTab.id, chatTab);
       })
     } else {
       chatTab.users.push(user);
+      this.currentUser.chats.set(chatTab.id, chatTab);
     }
 
     this.signalRService.openGroup(chatTab);
@@ -176,7 +181,8 @@ export class AppComponent implements OnInit, OnDestroy {
       this.currentUser = {
         id: this.utils.uuid4(),
         name: result,
-        connectionId: ''
+        connectionId: '',
+        chats: new Map<string, Chat>()
       }
       this.users.push(this.currentUser);
       this.signalRService.addUser(this.currentUser);
@@ -201,6 +207,7 @@ export class AppComponent implements OnInit, OnDestroy {
    * @param index
    */
   public closeTab(tab: Chat, index: number): void {
+    this.currentUser.chats.set(tab.id, tab);
     this.chatTabs.splice(index, 1);
   }
 
@@ -211,14 +218,19 @@ export class AppComponent implements OnInit, OnDestroy {
   public sendToChat(message: Message): void {
     let chat: Chat = this.chatTabs.find( (chat: Chat) => chat.id === message.chatId);
     if (chat === undefined) {
-      chat = {
-        id: message.chatId,
-        messages: [message],
-        name: message.sender.name,
-        users: [this.currentUser, message.sender],
-        newMessages: true
+      chat = this.currentUser.chats.get(message.chatId);
+      if (chat === undefined) {
+        chat = {
+          id: message.chatId,
+          messages: [message],
+          name: message.sender.name,
+          users: [this.currentUser, message.sender],
+          newMessages: true
+        }
+      } else {
+        // Chat exists but was closed
+        chat.messages.push(message);
       }
-
       this.chatTabs.push(chat);
       this.alertNewMessage(chat);
     } else {
