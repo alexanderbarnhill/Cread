@@ -1,4 +1,4 @@
-import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {User} from "../models/User.model";
 import {Chat} from "../models/Chat.model";
 import {Message} from "../models/Message.model";
@@ -8,6 +8,7 @@ import {Utils} from "../services/Utils.service";
 import {UserInfoDialog} from "../dialogs/user-info-dialog";
 import {NewChatDialog} from "../dialogs/new-chat-dialog";
 import {SignalRService} from "../services/SignalR.service";
+import {MediaMatcher} from "@angular/cdk/layout";
 
 @Component({
   selector: 'app-root',
@@ -25,16 +26,26 @@ export class AppComponent implements OnInit, OnDestroy {
   public connection = 'DOWN';
   public systemUser: User;
 
+  private readonly _mobileQueryListener: () => void;
+
   constructor(
     public dialog: MatDialog,
     private utils: Utils,
-    private signalRService: SignalRService
-  ) {}
+    private signalRService: SignalRService,
+    private changeDetectorRef: ChangeDetectorRef,
+    private media: MediaMatcher
+  ) {
+    this.mobileQuery = media.matchMedia('(max-width: 600px)');
+    this._mobileQueryListener = () => changeDetectorRef.detectChanges();
+    this.mobileQuery.addListener(this._mobileQueryListener);
+  }
 
   public users: Array<User> = new Array<User>();
   public selectedTab = new FormControl(0);
   public chatTabs: Array<Chat> = new Array<Chat>();
   public currentUser: User;
+
+  mobileQuery: MediaQueryList;
 
   /**
    * Starts the connection to the server, gets the user info, and sets up the initial broadcast tab
@@ -44,7 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.setupListeners();
 
     const systemTab: Chat = {
-      name: "System",
+      name: "All",
       messages: new Array<Message>(),
       id: this.utils.uuid4(),
       users: [],
@@ -87,7 +98,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.signalRService.hubConnection
       .on("broadcast", (message: Message) =>{
-        const broadcastTab = this.chatTabs.find( (chat: Chat) => chat.name.toLowerCase() === 'system');
+        const broadcastTab = this.chatTabs.find( (chat: Chat) => chat.name.toLowerCase() === 'all');
         if (broadcastTab !== undefined && message.sender.id !== this.currentUser.id) {
           broadcastTab.messages.push(message);
         }
@@ -278,6 +289,7 @@ export class AppComponent implements OnInit, OnDestroy {
    * are informed that the current user has left.
    */
   public ngOnDestroy(): void {
+    this.mobileQuery.removeListener(this._mobileQueryListener);
     this.signalRService.removeUser(this.currentUser);
   }
 }

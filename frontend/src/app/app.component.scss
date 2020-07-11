@@ -1,12 +1,12 @@
-.chat-overview {
-  width: 80%;
-}
-
 .user-list {
   overflow: scroll;
   width: 100%;
   margin-top: 20px;
   height: 90%;
+}
+
+.app-name {
+  margin-left: 16px;
 }
 
 .chat-header {
@@ -24,7 +24,56 @@
   animation-iteration-count: 5;
 }
 
+.spacer {
+  flex: 1 1 auto;
+}
+
+.mat-drawer {
+  min-width: 200px;
+}
+
 @keyframes alertChange {
   from {color: #868686;}
   to {color: #680000;}
+}
+
+.is-mobile .toolbar {
+  position: fixed;
+  z-index: 2;
+}
+
+h1.example-app-name {
+  margin-left: 8px;
+}
+
+.sidenav-container {
+  flex: 1;
+}
+
+.is-mobile .sidenav-container {
+  flex: 1 0 auto;
+}
+
+.mat-drawer-container {
+  margin-top: 0 !important;
+}
+
+.chat-container {
+  background: white;
+}
+
+@media screen and (min-width: 800px) {
+  .chat-overview {
+    width: 80%;
+  }
+}
+
+@media screen and (min-width: 600px) {
+  .chat-container {
+    display: flex;
+    justify-content: center;
+  }
+  .chat-overview {
+    width: 60%;
+  }
 }

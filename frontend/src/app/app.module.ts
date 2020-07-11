@@ -17,6 +17,7 @@ import {UserInfoDialog} from "../dialogs/user-info-dialog";
 import {FormsModule} from "@angular/forms";
 import {NewChatDialog} from "../dialogs/new-chat-dialog";
 import {MatMenuModule} from "@angular/material/menu";
+import {MatToolbarModule} from "@angular/material/toolbar";
 
 @NgModule({
   declarations: [
@@ -25,21 +26,22 @@ import {MatMenuModule} from "@angular/material/menu";
     UserInfoDialog,
     NewChatDialog,
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    MatSidenavModule,
-    MatTabsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatGridListModule,
-    MatListModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDialogModule,
-    FormsModule,
-    MatMenuModule
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        MatSidenavModule,
+        MatTabsModule,
+        MatIconModule,
+        MatButtonModule,
+        MatGridListModule,
+        MatListModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatDialogModule,
+        FormsModule,
+        MatMenuModule,
+        MatToolbarModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

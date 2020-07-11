@@ -74,7 +74,7 @@ export class ChatWindowComponent {
    * Sends a message to the intended receiver. Either broadcasting it or sending it to a group.
    */
   public send(message: Message) {
-    if (message.receiver.name.toLowerCase() === "system") {
+    if (message.receiver.name.toLowerCase() === "all") {
       this.signalRService.broadcast(message);
     } else {
       this.signalRService.sendMessage(message);
