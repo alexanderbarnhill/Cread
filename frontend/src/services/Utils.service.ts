@@ -5,6 +5,9 @@ import {Injectable} from "@angular/core";
 })
 export class Utils {
 
+  /**
+   * Generates a new UUID based on version 4.
+   */
   public uuid4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxx'
       .replace(/[xy]/g, (c: string) => {

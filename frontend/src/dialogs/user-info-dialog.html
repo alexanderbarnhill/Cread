@@ -2,7 +2,7 @@
 <div mat-dialog-content>
   <mat-form-field class="full-width">
     <mat-label>Desired Username</mat-label>
-    <input matInput type="text" [(ngModel)]="data.name" (keyup.enter)="submit()" matInputAutoFocus>
+    <input matInput type="text" [(ngModel)]="data.name" (keyup.enter)="submit()" cdkFocusInitial>
   </mat-form-field>
   <div class="message" *ngIf="data.message">{{data.message}}</div>
 </div>

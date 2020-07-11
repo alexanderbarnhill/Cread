@@ -21,9 +21,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.signalRService.removeUser(this.currentUser);
   }
 
-  title = 'Cread';
-  connection = 'DOWN';
-  systemUser: User;
+  public title = 'Cread';
+  public connection = 'DOWN';
+  public systemUser: User;
 
   constructor(
     public dialog: MatDialog,
@@ -36,31 +36,12 @@ export class AppComponent implements OnInit, OnDestroy {
   public chatTabs: Array<Chat> = new Array<Chat>();
   public currentUser: User;
 
+  /**
+   * Starts the connection to the server, gets the user info, and sets up the initial broadcast tab
+   */
   public ngOnInit(): void {
     this.signalRService.startConnection();
-    this.signalRService.addOpenGroupListener();
-    this.signalRService.addMessageListener();
-    this.signalRService.hubConnection
-      .on("addUser", (data: Array<User>) => {
-        this.users = data;
-    });
-
-    this.signalRService.hubConnection
-      .on("sendToGroup", (data: Message) => {
-        this.sendToChat(data);
-    })
-
-    this.signalRService.hubConnection
-      .on("removeUser", (data: Array<User>) => {
-        this.users = data;
-      });
-
-    this.signalRService.hubConnection
-      .on('leaveGroup', (chat: Chat, leavingUser: User) => {
-        console.log(chat);
-        console.log(leavingUser);
-        this.informLeave(chat, leavingUser);
-      });
+    this.setupListeners();
 
     const systemTab: Chat = {
       name: "System",
@@ -80,6 +61,45 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Sets up listeners for the various tasks such as broadcasting and adding users.
+   */
+  public setupListeners(): void {
+    this.signalRService.hubConnection
+      .on("addUser", (data: Array<User>) => {
+        this.users = data;
+      });
+
+    this.signalRService.hubConnection
+      .on("removeUser", (data: Array<User>) => {
+        this.users = data;
+      });
+
+    this.signalRService.hubConnection
+      .on("sendToGroup", (data: Message) => {
+        this.sendToChat(data);
+      })
+
+    this.signalRService.hubConnection
+      .on('leaveGroup', (chat: Chat, leavingUser: User) => {
+        this.informLeave(chat, leavingUser);
+      });
+
+    this.signalRService.hubConnection
+      .on("broadcast", (message: Message) =>{
+        const broadcastTab = this.chatTabs.find( (chat: Chat) => chat.name.toLowerCase() === 'system');
+        if (broadcastTab !== undefined && message.sender.id !== this.currentUser.id) {
+          broadcastTab.messages.push(message);
+        }
+
+      });
+  }
+
+  /**
+   * Opens a chat either with a defined user, or looks for a user when given the name.
+   * Adds both users to a group.
+   * @param user or undefined, depending on if the sender wants to input the username
+   */
   public openChat(user: User | undefined) {
     const chatTab: Chat = {
       name: user && user.name || "(New Chat)",
@@ -121,7 +141,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.signalRService.openGroup(chatTab);
   }
 
-  public getUserInfo() {
+  /**
+   * Opens up a dialog at the beginning to get the username
+   */
+  public getUserInfo(): void {
     let dialogRef = this.dialog.open(
       UserInfoDialog, {
         data: {name: '', message: ''},
@@ -149,7 +172,11 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-  public isValid(name: string) {
+  /**
+   * Checks if the username already exists
+   * @param name - Username to check
+   */
+  public isValid(name: string): boolean {
     if (name === '') {
       return false;
     }
@@ -157,11 +184,20 @@ export class AppComponent implements OnInit, OnDestroy {
     return user === undefined;
   }
 
-  public closeTab(tab: Chat, index: number) {
+  /**
+   * Closes the given tab, given the index in the list.
+   * @param tab
+   * @param index
+   */
+  public closeTab(tab: Chat, index: number): void {
     this.chatTabs.splice(index, 1);
   }
 
-  public sendToChat(message: Message) {
+  /**
+   * Given a message, find the chat it belongs to and add it to the messages in that chat.
+   * @param message
+   */
+  public sendToChat(message: Message): void {
     let chat: Chat = this.chatTabs.find( (chat: Chat) => chat.id === message.chatId);
     if (chat === undefined) {
       chat = {
@@ -182,7 +218,11 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  public alertNewMessage(chat: Chat) {
+  /**
+   * Alerts the user via a changing font color to new messages
+   * @param chat
+   */
+  public alertNewMessage(chat: Chat): void {
     const chatIdx = this.chatTabs.indexOf(chat);
     const selectedIdx = this.selectedTab.value;
     if (chatIdx !== selectedIdx) {
@@ -190,17 +230,29 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  public changeTab($event) {
+  /**
+   * The event fired when changing tabs. Used to acknowledge new messages.
+   * @param $event
+   */
+  public changeTab($event): void {
     this.selectedTab.setValue($event)
     const chat = this.chatTabs[$event];
     chat.newMessages = false;
   }
 
-  public checkConnection() {
+  /**
+   * Fired when opening up the user menu. Checks to see if there is an active connection to the server.
+   */
+  public checkConnection(): void {
     this.connection = this.signalRService.connection ? 'Active' : 'Inactive';
   }
 
-  public informLeave(chat: Chat, leavingUser: User) {
+  /**
+   * Informs the other users in a group when someone leaves.
+   * @param chat - Chat which the user has left.
+   * @param leavingUser - User who is leaving
+   */
+  public informLeave(chat: Chat, leavingUser: User): void {
     if (this.currentUser.id !== leavingUser.id) {
       const chatTab = this.chatTabs.find( (c: Chat) => c.id === chat.id);
       if (chatTab !== undefined) {
@@ -221,7 +273,11 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
+  /**
+   * Upon exiting the application a notification is sent to the server and the remaining users
+   * are informed that the current user has left.
+   */
+  public ngOnDestroy(): void {
     this.signalRService.removeUser(this.currentUser);
   }
 }

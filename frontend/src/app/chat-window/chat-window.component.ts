@@ -1,13 +1,9 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Message} from "../../models/Message.model";
 import {User} from "../../models/User.model";
 import {SignalRService} from "../../services/SignalR.service";
 import {Chat} from "../../models/Chat.model";
-import * as signalR from "@aspnet/signalr";
 import {Utils} from "../../services/Utils.service";
-
-class Messages {
-}
 
 
 @Component({
@@ -15,28 +11,21 @@ class Messages {
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.scss']
 })
-export class ChatWindowComponent implements OnInit {
+export class ChatWindowComponent {
 
   @Input() messages: Array<Message> = new Array<Message>();
   @Input() currentUser: User;
   @Input() chat: Chat;
 
   @Output() closeChatClicked = new EventEmitter<any>();
-
-  private hubConnection: signalR.HubConnection;
-  private apiUrl = "https://localhost:5001/chat"
-
-
   constructor(private signalRService: SignalRService, private utils: Utils) { }
 
-  ngOnInit(): void {
-    this.setupConnection();
-    if (this.chat.name.toLowerCase() === "system") {
-      this.addBroadcastListener();
-    }
-  }
-
-  public trigger(event: any) {
+  /**
+   * The mechanism for either sending a message to a receiver or creating a new line in the text box.
+   * Just enter will send the message. ctrl-enter will create a new line.
+   * @param event
+   */
+  public trigger(event: any): void {
     const text = document.getElementById("message-area");
     if (event.ctrlKey && event.key === 'Enter') {
       // @ts-ignore
@@ -73,41 +62,22 @@ export class ChatWindowComponent implements OnInit {
     }
   }
 
+  /**
+   * Closes the tab and removes you from the group.
+   */
   public closeTab() {
     this.closeChatClicked.emit();
     this.signalRService.leaveGroup(this.chat);
   }
 
+  /**
+   * Sends a message to the intended receiver. Either broadcasting it or sending it to a group.
+   */
   public send(message: Message) {
     if (message.receiver.name.toLowerCase() === "system") {
-      console.log('Broadcasting...');
       this.signalRService.broadcast(message);
     } else {
       this.signalRService.sendMessage(message);
     }
-  }
-
-  private setupConnection() {
-    this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(this.apiUrl)
-      .build()
-
-    this.hubConnection
-      .start()
-      .then( () => {
-        console.log('Connection Started');
-      })
-      .catch( (err) => {
-        console.log(`Error while starting connection: ${err}`);
-      });
-  }
-
-  public addBroadcastListener() {
-    this.hubConnection.on("broadcast", (data: Message) => {
-      const message = this.messages.find( (m: Message) => m.id === data.id);
-      if (message === undefined) {
-        this.messages.push(data);
-      }
-    });
   }
 }

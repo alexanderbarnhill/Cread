@@ -3,6 +3,7 @@ import * as signalR from "@aspnet/signalr";
 import {Message} from "../models/Message.model";
 import {User} from "../models/User.model";
 import {Chat} from "../models/Chat.model";
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,11 @@ import {Chat} from "../models/Chat.model";
 export class SignalRService {
   public hubConnection: signalR.HubConnection;
   public connection = false;
-  private apiUrl = "https://localhost:5001/chat"
+  private apiUrl = `${environment.server}/chat`
 
+  /**
+   * Starts a connection with the server
+   */
   public startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.apiUrl)
@@ -27,6 +31,9 @@ export class SignalRService {
       });
   }
 
+  /**
+   * Sends a message to all users
+   */
   public broadcast(message: Message) {
     this.hubConnection.invoke("broadcast", message)
       .catch( (err) => {
@@ -34,12 +41,9 @@ export class SignalRService {
       })
   }
 
-  public addBroadcastListener() {
-    this.hubConnection.on("broadcast", (data) => {
-      console.log(data);
-    });
-  }
-
+  /**
+   * Adds a new user to the application
+   */
   public addUser(user: User) {
     this.hubConnection.invoke("addUser", user)
       .catch((err) => {
@@ -47,6 +51,9 @@ export class SignalRService {
       })
   }
 
+  /**
+   * Sets up a new group with multiple users. Here used as private messaging
+   */
   public openGroup(chatTab: Chat) {
     console.log(chatTab);
     this.hubConnection.invoke("openGroup", chatTab)
@@ -55,12 +62,9 @@ export class SignalRService {
       })
   }
 
-  public addOpenGroupListener() {
-    this.hubConnection.on("openGroup", (data) => {
-      console.log(data);
-    })
-  }
-
+  /**
+   * Sends a message to a group
+   */
   public sendMessage(message: Message) {
     this.hubConnection.invoke("sendToGroup", message)
       .catch( (err) => {
@@ -68,12 +72,9 @@ export class SignalRService {
       })
   }
 
-  public addMessageListener() {
-    this.hubConnection.on("sendToGroup", (data: Message) => {
-      console.log(data);
-    })
-  }
-
+  /**
+   * Removes the calling user from the group
+   */
   public leaveGroup(chat: Chat) {
     this.hubConnection.invoke('leaveGroup', chat)
       .catch( (err) => {
@@ -81,6 +82,9 @@ export class SignalRService {
       });
   }
 
+  /**
+   * Removes the calling user from the application
+   */
   public removeUser(user: User) {
     this.hubConnection.invoke("removeUser", user)
       .catch( (err) => {

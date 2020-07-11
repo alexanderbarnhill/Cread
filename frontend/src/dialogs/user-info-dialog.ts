@@ -1,7 +1,6 @@
 import {Component, Inject} from "@angular/core";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 import {UserDialogData} from "../models/UserDialogData.model";
-import {AutofocusDirective} from "../directives/Autofocus.directive";
 
 @Component({
   selector: 'user-info-dialog',

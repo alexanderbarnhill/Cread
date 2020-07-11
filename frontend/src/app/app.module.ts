@@ -17,7 +17,6 @@ import {UserInfoDialog} from "../dialogs/user-info-dialog";
 import {FormsModule} from "@angular/forms";
 import {NewChatDialog} from "../dialogs/new-chat-dialog";
 import {MatMenuModule} from "@angular/material/menu";
-import {AutofocusDirective} from "../directives/Autofocus.directive";
 
 @NgModule({
   declarations: [
@@ -25,7 +24,6 @@ import {AutofocusDirective} from "../directives/Autofocus.directive";
     ChatWindowComponent,
     UserInfoDialog,
     NewChatDialog,
-    AutofocusDirective
   ],
   imports: [
     BrowserModule,
