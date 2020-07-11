@@ -11,4 +11,8 @@ export class NewChatDialog {
     public dialogRef: MatDialogRef<NewChatDialogData>,
     @Inject(MAT_DIALOG_DATA) public data: NewChatDialogData) {}
 
+  public submit() {
+    console.log('Submit was..done')
+    this.dialogRef.close();
+  }
 }

@@ -1,6 +1,7 @@
 import {Component, Inject} from "@angular/core";
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 import {UserDialogData} from "../models/UserDialogData.model";
+import {AutofocusDirective} from "../directives/Autofocus.directive";
 
 @Component({
   selector: 'user-info-dialog',
@@ -9,6 +10,12 @@ import {UserDialogData} from "../models/UserDialogData.model";
 export class UserInfoDialog {
   constructor(
     public dialogRef: MatDialogRef<UserDialogData>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDialogData) {}
+    @Inject(MAT_DIALOG_DATA) public data: UserDialogData) {
+    dialogRef.disableClose = true;
+  }
 
+
+    public submit() {
+      this.dialogRef.close(this.data.name);
+    }
 }

@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Message} from "../../models/Message.model";
 import {User} from "../../models/User.model";
 import {SignalRService} from "../../services/SignalR.service";
-import {ChatTab} from "../../models/ChatTab.model";
+import {Chat} from "../../models/Chat.model";
 import * as signalR from "@aspnet/signalr";
 import {Utils} from "../../services/Utils.service";
 
@@ -19,7 +19,7 @@ export class ChatWindowComponent implements OnInit {
 
   @Input() messages: Array<Message> = new Array<Message>();
   @Input() currentUser: User;
-  @Input() chatTab: ChatTab;
+  @Input() chat: Chat;
 
   @Output() closeChatClicked = new EventEmitter<any>();
 
@@ -31,7 +31,7 @@ export class ChatWindowComponent implements OnInit {
 
   ngOnInit(): void {
     this.setupConnection();
-    if (this.chatTab.name.toLowerCase() === "system") {
+    if (this.chat.name.toLowerCase() === "system") {
       this.addBroadcastListener();
     }
   }
@@ -46,13 +46,14 @@ export class ChatWindowComponent implements OnInit {
       // @ts-ignore
 
       const receiver: User = {
-        name: this.chatTab.name
+        name: this.chat.name
       }
 
       // @ts-ignore
       const messageContent = text.value;
 
       const message: Message = {
+        chatId: this.chat.id,
         id: this.utils.uuid4(),
         content: messageContent,
         receiver: receiver,
@@ -74,12 +75,15 @@ export class ChatWindowComponent implements OnInit {
 
   public closeTab() {
     this.closeChatClicked.emit();
+    this.signalRService.leaveGroup(this.chat);
   }
 
   public send(message: Message) {
     if (message.receiver.name.toLowerCase() === "system") {
       console.log('Broadcasting...');
       this.signalRService.broadcast(message);
+    } else {
+      this.signalRService.sendMessage(message);
     }
   }
 

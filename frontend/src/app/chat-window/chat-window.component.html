@@ -1,7 +1,7 @@
 <mat-list id="chat-window">
   <mat-list-item *ngFor="let message of messages">
-    <span class="message" [ngClass]="{'local': message.sender.name === currentUser.name}">
-      <span class="sender" *ngIf="chatTab.name.toLowerCase() === 'system' && message.sender.name !== currentUser.name">{{message.sender.name}} sent: </span> <br/>
+    <span class="message" [ngClass]="{'local': message.sender.name === currentUser.name, 'system': message.sender.name === 'SYSTEM'}">
+      <span class="sender" *ngIf="message.sender.name !== currentUser.name">{{message.sender.name}} sent: </span> <br/>
       <span class="content">{{message.content}}</span> <br />
       <span class="time">{{message.timeSent}}</span>
     </span>

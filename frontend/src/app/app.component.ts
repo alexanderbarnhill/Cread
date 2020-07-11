@@ -1,6 +1,6 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {User} from "../models/User.model";
-import {ChatTab} from "../models/ChatTab.model";
+import {Chat} from "../models/Chat.model";
 import {Message} from "../models/Message.model";
 import {FormControl} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
@@ -14,45 +14,82 @@ import {SignalRService} from "../services/SignalR.service";
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
-  title = 'frontend';
-  showFiller = false;
+export class AppComponent implements OnInit, OnDestroy {
 
-  constructor(public dialog: MatDialog, private utils: Utils, private signalRService: SignalRService) {
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler() {
+    this.signalRService.removeUser(this.currentUser);
   }
 
+  title = 'Cread';
+  connection = 'DOWN';
+  systemUser: User;
+
+  constructor(
+    public dialog: MatDialog,
+    private utils: Utils,
+    private signalRService: SignalRService
+  ) {}
+
   public users: Array<User> = new Array<User>();
-  public userChats: Array<ChatTab> = new Array<ChatTab>();
   public selectedTab = new FormControl(0);
-  public chatTabs: Array<ChatTab> = new Array<ChatTab>();
+  public chatTabs: Array<Chat> = new Array<Chat>();
   public currentUser: User;
 
   public ngOnInit(): void {
     this.signalRService.startConnection();
+    this.signalRService.addOpenGroupListener();
+    this.signalRService.addMessageListener();
     this.signalRService.hubConnection
-      .on("addUser", (data: User) => {
-        console.log(data);
+      .on("addUser", (data: Array<User>) => {
+        this.users = data;
     });
 
-    const systemTab: ChatTab = {
+    this.signalRService.hubConnection
+      .on("sendToGroup", (data: Message) => {
+        this.sendToChat(data);
+    })
+
+    this.signalRService.hubConnection
+      .on("removeUser", (data: Array<User>) => {
+        this.users = data;
+      });
+
+    this.signalRService.hubConnection
+      .on('leaveGroup', (chat: Chat, leavingUser: User) => {
+        console.log(chat);
+        console.log(leavingUser);
+        this.informLeave(chat, leavingUser);
+      });
+
+    const systemTab: Chat = {
       name: "System",
       messages: new Array<Message>(),
-      id: this.utils.uuid4()
+      id: this.utils.uuid4(),
+      users: [],
+      newMessages: false
     }
 
     this.chatTabs.push(systemTab);
     this.getUserInfo();
+
+    this.systemUser = {
+      name: 'SYSTEM',
+      id: this.utils.uuid4(),
+      connectionId: ''
+    }
   }
 
   public openChat(user: User | undefined) {
-    const chatTab: ChatTab = {
+    const chatTab: Chat = {
       name: user && user.name || "(New Chat)",
       messages: new Array<Message>(),
-      id: this.utils.uuid4()
+      id: this.utils.uuid4(),
+      users: [this.currentUser],
+      newMessages: false
     }
 
     this.chatTabs.push(chatTab);
-    console.log(this.chatTabs);
     this.selectedTab.setValue(this.chatTabs.length - 1);
 
     if (user === undefined) {
@@ -60,7 +97,8 @@ export class AppComponent implements OnInit {
         data: {name: '', message: ''}
       });
 
-      dialogRef.beforeClosed().subscribe( result => {
+      dialogRef.beforeClosed()
+        .subscribe( result => {
         if (this.isValid(result)) {
           dialogRef = this.dialog.open(
             UserInfoDialog, {
@@ -72,8 +110,15 @@ export class AppComponent implements OnInit {
 
       dialogRef.afterClosed().subscribe( result => {
         chatTab.name = result;
+        user = this.users.find( (u: User) => u.name == result);
+        chatTab.users.push(user);
+        this.signalRService.openGroup(chatTab);
       })
+    } else {
+      chatTab.users.push(user);
     }
+
+    this.signalRService.openGroup(chatTab);
   }
 
   public getUserInfo() {
@@ -96,7 +141,8 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       this.currentUser = {
         id: this.utils.uuid4(),
-        name: result
+        name: result,
+        connectionId: ''
       }
       this.users.push(this.currentUser);
       this.signalRService.addUser(this.currentUser);
@@ -111,7 +157,71 @@ export class AppComponent implements OnInit {
     return user === undefined;
   }
 
-  public closeTab(tab: ChatTab, index: number) {
+  public closeTab(tab: Chat, index: number) {
     this.chatTabs.splice(index, 1);
+  }
+
+  public sendToChat(message: Message) {
+    let chat: Chat = this.chatTabs.find( (chat: Chat) => chat.id === message.chatId);
+    if (chat === undefined) {
+      chat = {
+        id: message.chatId,
+        messages: [message],
+        name: message.sender.name,
+        users: [this.currentUser, message.sender],
+        newMessages: true
+      }
+
+      this.chatTabs.push(chat);
+      this.alertNewMessage(chat);
+    } else {
+      if (message.sender.id !== this.currentUser.id) {
+        chat.messages.push(message);
+        this.alertNewMessage(chat);
+      }
+    }
+  }
+
+  public alertNewMessage(chat: Chat) {
+    const chatIdx = this.chatTabs.indexOf(chat);
+    const selectedIdx = this.selectedTab.value;
+    if (chatIdx !== selectedIdx) {
+      chat.newMessages = true;
+    }
+  }
+
+  public changeTab($event) {
+    this.selectedTab.setValue($event)
+    const chat = this.chatTabs[$event];
+    chat.newMessages = false;
+  }
+
+  public checkConnection() {
+    this.connection = this.signalRService.connection ? 'Active' : 'Inactive';
+  }
+
+  public informLeave(chat: Chat, leavingUser: User) {
+    if (this.currentUser.id !== leavingUser.id) {
+      const chatTab = this.chatTabs.find( (c: Chat) => c.id === chat.id);
+      if (chatTab !== undefined) {
+        const receiver: User = chatTab.users.find( (u: User) => u.id !== leavingUser.id);
+        if (receiver !== undefined) {
+          const message: Message = {
+            content: `${leavingUser.name} has left.`,
+            chatId: chat.id,
+            sender: this.systemUser,
+            id: this.utils.uuid4(),
+            receiver: receiver,
+            timeSent: new Date().toLocaleString()
+
+          }
+          chatTab.messages.push(message);
+        }
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.signalRService.removeUser(this.currentUser);
   }
 }

@@ -2,12 +2,14 @@ import {Injectable} from "@angular/core";
 import * as signalR from "@aspnet/signalr";
 import {Message} from "../models/Message.model";
 import {User} from "../models/User.model";
+import {Chat} from "../models/Chat.model";
 
 @Injectable({
   providedIn: 'root'
 })
 export class SignalRService {
   public hubConnection: signalR.HubConnection;
+  public connection = false;
   private apiUrl = "https://localhost:5001/chat"
 
   public startConnection() {
@@ -18,7 +20,7 @@ export class SignalRService {
     this.hubConnection
       .start()
       .then( () => {
-        console.log('Connection Started');
+        this.connection = true;
       })
       .catch( (err) => {
         console.log(`Error while starting connection: ${err}`);
@@ -44,5 +46,48 @@ export class SignalRService {
         console.log(`Error adding user: ${err}`);
       })
   }
+
+  public openGroup(chatTab: Chat) {
+    console.log(chatTab);
+    this.hubConnection.invoke("openGroup", chatTab)
+      .catch( (err) =>{
+        console.log(`Error opening group ${err}`)
+      })
+  }
+
+  public addOpenGroupListener() {
+    this.hubConnection.on("openGroup", (data) => {
+      console.log(data);
+    })
+  }
+
+  public sendMessage(message: Message) {
+    this.hubConnection.invoke("sendToGroup", message)
+      .catch( (err) => {
+        console.log(`Error sending a message to the group ${err}`);
+      })
+  }
+
+  public addMessageListener() {
+    this.hubConnection.on("sendToGroup", (data: Message) => {
+      console.log(data);
+    })
+  }
+
+  public leaveGroup(chat: Chat) {
+    this.hubConnection.invoke('leaveGroup', chat)
+      .catch( (err) => {
+        console.log(`Error leaving the group: ${err}`);
+      });
+  }
+
+  public removeUser(user: User) {
+    this.hubConnection.invoke("removeUser", user)
+      .catch( (err) => {
+        console.log(`Error removing user: ${err}`);
+      })
+  }
+
+
 
 }

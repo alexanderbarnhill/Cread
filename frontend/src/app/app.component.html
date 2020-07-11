@@ -15,20 +15,26 @@
         Chat
         <div class="right-menu">
           <button mat-raised-button
-                  mat-icon-button
                   color="primary"
                   class="add-tab-button"
-                  (click)="openChat(undefined)">
+                  (click)="openChat(undefined)"> New Chat
             <mat-icon aria-hidden="false" aria-label="Example home icon">add</mat-icon>
           </button>
-          <span class="current-user" *ngIf="currentUser">{{currentUser.name}}</span>
+          <button *ngIf="currentUser" mat-button [matMenuTriggerFor]="menu" (onMenuOpen)="checkConnection()">{{currentUser.name}}</button>
+          <mat-menu #menu="matMenu">
+            <span mat-menu-item>Server Connection: {{connection}}</span>
+          </mat-menu>
         </div>
 
       </mat-grid-tile-header>
 
-      <mat-tab-group mat-align-tabs="start" [selectedIndex]="selectedTab.value" (selectedIndexChange)="selectedTab.setValue($event)">
-        <mat-tab *ngFor="let tab of chatTabs; let index = index" [label]="tab.name">
-          <app-chat-window *ngIf="currentUser" [messages]="tab.messages" [currentUser]="currentUser" [chatTab]="tab" (closeChatClicked)="closeTab(tab, index)"></app-chat-window>
+      <mat-tab-group mat-align-tabs="start" id="chat-tabs" [selectedIndex]="selectedTab.value" (selectedIndexChange)="changeTab($event)">
+        <mat-tab *ngFor="let tab of chatTabs; let index = index">
+          <ng-template mat-tab-label>
+            <div [ngClass]="{'alert': tab.newMessages}"> {{tab.name}}</div>
+          </ng-template>
+          <app-chat-window *ngIf="currentUser" [messages]="tab.messages" [currentUser]="currentUser" [chat]="tab"
+                           (closeChatClicked)="closeTab(tab, index)"></app-chat-window>
         </mat-tab>
       </mat-tab-group>
     </div>

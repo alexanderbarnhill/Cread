@@ -1,7 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
-import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatSidenavModule} from "@angular/material/sidenav";
@@ -17,17 +16,19 @@ import {MatDialogModule} from "@angular/material/dialog";
 import {UserInfoDialog} from "../dialogs/user-info-dialog";
 import {FormsModule} from "@angular/forms";
 import {NewChatDialog} from "../dialogs/new-chat-dialog";
+import {MatMenuModule} from "@angular/material/menu";
+import {AutofocusDirective} from "../directives/Autofocus.directive";
 
 @NgModule({
   declarations: [
     AppComponent,
     ChatWindowComponent,
     UserInfoDialog,
-    NewChatDialog
+    NewChatDialog,
+    AutofocusDirective
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     BrowserAnimationsModule,
     MatSidenavModule,
     MatTabsModule,
@@ -38,7 +39,8 @@ import {NewChatDialog} from "../dialogs/new-chat-dialog";
     MatFormFieldModule,
     MatInputModule,
     MatDialogModule,
-    FormsModule
+    FormsModule,
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]

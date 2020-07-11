@@ -1,29 +1,12 @@
-.example-container {
-  width: 500px;
-  height: 300px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-}
-
-.example-sidenav-content {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-}
-
-.example-sidenav {
-  padding: 20px;
-}
-
 .chat-overview {
-  width: 100%;
+  width: 80%;
 }
 
 .user-list {
   overflow: scroll;
   width: 100%;
-  margin-top: 100px;
-  height: 100%;
+  margin-top: 20px;
+  height: 90%;
 }
 
 .chat-header {
@@ -35,3 +18,13 @@
 }
 
 
+.alert {
+  animation-name: alertChange;
+  animation-duration: 1s;
+  animation-iteration-count: 5;
+}
+
+@keyframes alertChange {
+  from {color: #868686;}
+  to {color: #680000;}
+}
