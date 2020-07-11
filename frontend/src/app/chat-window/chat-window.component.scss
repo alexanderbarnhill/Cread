@@ -58,3 +58,13 @@
 
   }
 }
+
+@media screen and (max-width: 600px) {
+  #chat-window {
+    height: 440px;
+  }
+
+  .message-form {
+    padding: 16px;
+  }
+}
